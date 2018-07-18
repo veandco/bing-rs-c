@@ -6,7 +6,14 @@
 
 #include "bing_rs.h"
 
-static const char *SUBSCRIPTION_KEY = "";
+#define CUSTOM_SPEECH
+
+#if defined(CUSTOM_SPEECH)
+static const char SUBSCRIPTION_KEY[] = "SUBSCRIPTION_KEY";
+static const char ENDPOINT_ID[] = "ENDPOINT_ID";
+#else
+static const char SUBSCRIPTION_KEY[] = "SUBSCRIPTION_KEY";
+#endif
 
 static void on_turn_start()
 {
@@ -70,6 +77,13 @@ int main()
     // Initialize Bing Speech
     bing_speech = bing_speech_new(subscription_key);
 
+    #if defined(CUSTOM_SPEECH)
+    char *endpoint_id = malloc(sizeof(ENDPOINT_ID));
+    strcpy(endpoint_id, ENDPOINT_ID);
+    bing_speech_set_custom_speech(bing_speech, 1);
+    bing_speech_set_endpoint_id(bing_speech, endpoint_id);
+    #endif
+
     // Fetch Token
     char *token = bing_speech_fetch_token(bing_speech);
     fprintf(stdout, "Got token: %s\n", token);
@@ -110,7 +124,7 @@ int main()
     }
 
     // Send silence to Bing
-    for (i = 0; i < 10; i++) {
+    for (i = 0; i < 20; i++) {
         char *buf = malloc(BUF_SIZE); // Freed by Rust
 
         memset(buf, 0, BUF_SIZE);

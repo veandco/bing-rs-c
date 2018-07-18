@@ -37,6 +37,8 @@ typedef struct BingSpeechHypothesis {
 
 extern BingSpeech * bing_speech_new(const char *subscription_key);
 extern void bing_speech_free(BingSpeech *);
+extern void bing_speech_set_custom_speech(BingSpeech *, int is_custom_speech);
+extern void bing_speech_set_endpoint_id(BingSpeech *, const char *endpoint_id);
 extern char * bing_speech_fetch_token(BingSpeech *);
 
 extern BingSpeechWebsocket * bing_speech_websocket(BingSpeech *, BingSpeechWebsocketHandler);
