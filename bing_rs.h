@@ -43,6 +43,7 @@ extern "C"
     extern void bing_speech_set_endpoint_id(BingSpeech *, const char *endpoint_id);
     extern char * bing_speech_fetch_token(BingSpeech *);
     extern void bing_speech_auto_fetch_token(BingSpeech *);
+    extern void bing_speech_synthesize(BingSpeech *, const char *text, int font, void **synthesize_data, int *synthesize_data_len);
 
     extern BingSpeechWebsocket * bing_speech_websocket_new();
     extern BingSpeechWebsocket * bing_speech_websocket_connect(BingSpeech *, BingSpeechWebsocket *, int mode, int language, int format, int is_custom_speech, char *endpoint_id, BingSpeechWebsocketHandler handler);

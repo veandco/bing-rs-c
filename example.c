@@ -71,25 +71,27 @@ int main()
     struct stat file_stat;
     int i;
 
-    subscription_key = (char *) malloc(33); // Freed by Rust
-    strcpy(subscription_key, SUBSCRIPTION_KEY);
-
     // Initialize Bing Speech
-    bing_speech = bing_speech_new(subscription_key);
+    bing_speech = bing_speech_new(SUBSCRIPTION_KEY);
 
-    #if defined(CUSTOM_SPEECH)
-    char *endpoint_id = (char *) malloc(sizeof(ENDPOINT_ID));
-    strcpy(endpoint_id, ENDPOINT_ID);
+#if defined(CUSTOM_SPEECH)
     bing_speech_set_custom_speech(bing_speech, 1);
-    bing_speech_set_endpoint_id(bing_speech, endpoint_id);
-    #else
-    char *endpoint_id = NULL;
-    #endif
+    bing_speech_set_endpoint_id(bing_speech, ENDPOINT_ID);
+#endif
 
     // Fetch Token
     char *token = bing_speech_fetch_token(bing_speech);
     fprintf(stdout, "Got token: %s\n", token);
     bing_speech_auto_fetch_token(bing_speech);
+
+    // Synthesize
+    void *synthesize_data = NULL;
+    int synthesize_data_len = 0;
+    bing_speech_synthesize(bing_speech, "Hello, Jacky!", 0, &synthesize_data, &synthesize_data_len);
+    fprintf(stdout, "Synthesized audio with size of %d\n", synthesize_data_len);
+    FILE *synthesize_file = fopen("synthesize.bin", "w");
+    fwrite(synthesize_data, 1, synthesize_data_len, synthesize_file);
+    fclose(synthesize_file);
 
     // Get Websocket Handle
     memset(&handler, 0, sizeof(handler));
@@ -100,7 +102,12 @@ int main()
     handler.on_speech_hypothesis = on_speech_hypothesis;
     handler.on_speech_phrase = on_speech_phrase;
     websocket = bing_speech_websocket_new();
-    bing_speech_websocket_connect(bing_speech, websocket, MODE_INTERACTIVE, LANGUAGE_ENGLISH_UNITED_STATES, FORMAT_DETAILED, 0, endpoint_id, handler);
+
+#if defined(CUSTOM_SPEECH)
+    bing_speech_websocket_connect(bing_speech, websocket, MODE_INTERACTIVE, LANGUAGE_ENGLISH_UNITED_STATES, FORMAT_DETAILED, 0, ENDPOINT_ID, handler);
+#else
+    bing_speech_websocket_connect(bing_speech, websocket, MODE_INTERACTIVE, LANGUAGE_ENGLISH_UNITED_STATES, FORMAT_DETAILED, 0, NULL, handler);
+#endif
 
     // Read audio data
     file = fopen("assets/audio.raw", "r");
@@ -114,7 +121,7 @@ int main()
 
     // Send the audio to Bing
     for (i = 0; i < file_stat.st_size; i += BUF_SIZE) {
-        char *buf = (char *) malloc(BUF_SIZE); // Freed by Rust
+        char buf[BUF_SIZE] = { 0 };
         int size_to_read = BUF_SIZE;
 
         if (file_stat.st_size - i < BUF_SIZE) {
@@ -122,16 +129,17 @@ int main()
         }
 
         int nread = fread(buf, 1, size_to_read, file);
+        fprintf(stdout, "Begin\n");
         bing_speech_websocket_audio(websocket, buf, nread);
+        fprintf(stdout, "End\n");
 
         usleep(256 * 1000);
     }
 
     // Send silence to Bing
     for (i = 0; i < 20; i++) {
-        char *buf = (char *) malloc(BUF_SIZE); // Freed by Rust
+        char buf[BUF_SIZE] = { 0 };
 
-        memset(buf, 0, BUF_SIZE);
         bing_speech_websocket_audio(websocket, buf, BUF_SIZE);
         usleep(256 * 1000);
     }
