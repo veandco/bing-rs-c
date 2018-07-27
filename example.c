@@ -87,7 +87,7 @@ int main()
     // Synthesize
     void *synthesize_data = NULL;
     int synthesize_data_len = 0;
-    bing_speech_synthesize(bing_speech, "Hello, Jacky!", 0, &synthesize_data, &synthesize_data_len);
+    bing_speech_synthesize(bing_speech, "Hello, Jacky!", VOICE_FONT_EN_US_JESSA_RUS, &synthesize_data, &synthesize_data_len);
     fprintf(stdout, "Synthesized audio with size of %d\n", synthesize_data_len);
     FILE *synthesize_file = fopen("synthesize.bin", "w");
     fwrite(synthesize_data, 1, synthesize_data_len, synthesize_file);
@@ -129,10 +129,7 @@ int main()
         }
 
         int nread = fread(buf, 1, size_to_read, file);
-        fprintf(stdout, "Begin\n");
         bing_speech_websocket_audio(websocket, buf, nread);
-        fprintf(stdout, "End\n");
-
         usleep(256 * 1000);
     }
 
@@ -147,5 +144,6 @@ int main()
 out:
     fclose(file);
     bing_speech_websocket_disconnect(websocket);
+    bing_speech_websocket_free(websocket);
     bing_speech_free(bing_speech);
 }
