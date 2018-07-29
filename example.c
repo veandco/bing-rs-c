@@ -8,13 +8,6 @@
 
 //#define CUSTOM_SPEECH
 
-#if defined(CUSTOM_SPEECH)
-static const char SUBSCRIPTION_KEY[] = "SUBSCRIPTION_KEY";
-static const char ENDPOINT_ID[] = "ENDPOINT_ID";
-#else
-static const char SUBSCRIPTION_KEY[] = "7394827f916d4b48b7a3feb7bfe62aa1";
-#endif
-
 static void on_turn_start()
 {
     fprintf(stdout, "Turn Start\n");
@@ -72,11 +65,11 @@ int main()
     int i;
 
     // Initialize Bing Speech
-    bing_speech = bing_speech_new(SUBSCRIPTION_KEY);
+    bing_speech = bing_speech_new(getenv("SUBSCRIPTION_KEY"));
 
 #if defined(CUSTOM_SPEECH)
     bing_speech_set_custom_speech(bing_speech, 1);
-    bing_speech_set_endpoint_id(bing_speech, ENDPOINT_ID);
+    bing_speech_set_endpoint_id(bing_speech, getenv("ENDPOINT_ID"));
 #endif
 
     // Fetch Token
@@ -104,7 +97,7 @@ int main()
     websocket = bing_speech_websocket_new();
 
 #if defined(CUSTOM_SPEECH)
-    bing_speech_websocket_connect(bing_speech, websocket, MODE_INTERACTIVE, LANGUAGE_ENGLISH_UNITED_STATES, FORMAT_DETAILED, 0, ENDPOINT_ID, handler);
+    bing_speech_websocket_connect(bing_speech, websocket, MODE_INTERACTIVE, LANGUAGE_ENGLISH_UNITED_STATES, FORMAT_DETAILED, 0, getenv("ENDPOINT_ID"), handler);
 #else
     bing_speech_websocket_connect(bing_speech, websocket, MODE_INTERACTIVE, LANGUAGE_ENGLISH_UNITED_STATES, FORMAT_DETAILED, 0, NULL, handler);
 #endif
