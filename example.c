@@ -128,6 +128,14 @@ int main()
     bing_speech_websocket_connect(bing_speech, websocket, MODE_INTERACTIVE, LANGUAGE_ENGLISH_UNITED_STATES, FORMAT_DETAILED, 0, NULL, handler);
 #endif
 
+    // Read audio data again
+    fclose(file);
+    file = fopen("assets/audio.raw", "r");
+    if (!file) {
+        perror("main:");
+        goto out;
+    }
+
     // Send the audio to Bing
     for (i = 0; i < file_stat.st_size; i += BUF_SIZE) {
         char buf[BUF_SIZE] = { 0 };

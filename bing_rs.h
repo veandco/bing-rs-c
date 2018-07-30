@@ -29,8 +29,8 @@ typedef struct BingSpeechHypothesis {
 typedef struct BingSpeechWebsocketHandler {
     void (*on_turn_start)();
     void (*on_turn_end)();
-    void (*on_speech_start_detected)();
-    void (*on_speech_end_detected)();
+    void (*on_speech_start)();
+    void (*on_speech_end)();
     void (*on_speech_hypothesis)(BingSpeechHypothesis);
     void (*on_speech_phrase)(BingSpeechPhrase);
 } BingSpeechWebsocketHandler;
