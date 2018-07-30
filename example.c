@@ -59,8 +59,14 @@ int main()
     BingSpeech *bing_speech;
     BingSpeechWebsocket *websocket;
     BingSpeechWebsocketHandler handler;
+    BingSpeechPhrase phrase;
+    char *recognize_buf;
     char *subscription_key;
+    char *token;
     FILE *file;
+    FILE *synthesize_file;
+    void *synthesize_data;
+    int synthesize_data_len;
     struct stat file_stat;
     int i;
 
@@ -72,17 +78,37 @@ int main()
     bing_speech_set_endpoint_id(bing_speech, getenv("ENDPOINT_ID"));
 #endif
 
+    // Read audio data
+    file = fopen("assets/audio.raw", "r");
+    if (!file) {
+        perror("main:");
+        goto out;
+    }
+
+    // Get file stat
+    fstat(fileno(file), &file_stat);
+
     // Fetch Token
-    char *token = bing_speech_fetch_token(bing_speech);
+    token = bing_speech_fetch_token(bing_speech);
     fprintf(stdout, "Got token: %s\n", token);
     bing_speech_auto_fetch_token(bing_speech);
 
+    // Recognize
+    {
+        recognize_buf = (char *) malloc(file_stat.st_size);
+        fread(recognize_buf, 1, file_stat.st_size, file);
+        fprintf(stdout, "Begin\n");
+        bing_speech_recognize(bing_speech, recognize_buf, file_stat.st_size, MODE_INTERACTIVE, LANGUAGE_ENGLISH_UNITED_STATES, FORMAT_DETAILED, &phrase);
+        fprintf(stdout, "End\n");
+        fprintf(stdout, "%s\n", phrase.nbest[0].itn);
+    }
+
     // Synthesize
-    void *synthesize_data = NULL;
-    int synthesize_data_len = 0;
+    synthesize_data = NULL;
+    synthesize_data_len = 0;
     bing_speech_synthesize(bing_speech, "Hello, Jacky!", VOICE_FONT_EN_US_JESSA_RUS, &synthesize_data, &synthesize_data_len);
     fprintf(stdout, "Synthesized audio with size of %d\n", synthesize_data_len);
-    FILE *synthesize_file = fopen("synthesize.bin", "w");
+    synthesize_file = fopen("synthesize.bin", "w");
     fwrite(synthesize_data, 1, synthesize_data_len, synthesize_file);
     fclose(synthesize_file);
 
@@ -101,16 +127,6 @@ int main()
 #else
     bing_speech_websocket_connect(bing_speech, websocket, MODE_INTERACTIVE, LANGUAGE_ENGLISH_UNITED_STATES, FORMAT_DETAILED, 0, NULL, handler);
 #endif
-
-    // Read audio data
-    file = fopen("assets/audio.raw", "r");
-    if (!file) {
-        perror("main:");
-        goto out;
-    }
-
-    // Get file stat
-    fstat(fileno(file), &file_stat);
 
     // Send the audio to Bing
     for (i = 0; i < file_stat.st_size; i += BUF_SIZE) {
