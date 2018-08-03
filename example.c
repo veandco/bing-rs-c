@@ -116,8 +116,8 @@ int main()
     memset(&handler, 0, sizeof(handler));
     handler.on_turn_start = on_turn_start;
     handler.on_turn_end = on_turn_end;
-    handler.on_speech_start_detected = on_speech_start_detected;
-    handler.on_speech_end_detected = on_speech_end_detected;
+    handler.on_speech_start = on_speech_start_detected;
+    handler.on_speech_end = on_speech_end_detected;
     handler.on_speech_hypothesis = on_speech_hypothesis;
     handler.on_speech_phrase = on_speech_phrase;
     websocket = bing_speech_websocket_new();
